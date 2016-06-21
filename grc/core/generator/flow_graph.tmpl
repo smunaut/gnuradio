@@ -45,6 +45,10 @@ $DIVIDER
 import threading
 #end if
 
+#if $generate_options == 'qt_gui'
+from distutils.version import StrictVersion
+#end if
+
 ## Call XInitThreads as the _very_ first thing.
 ## After some Qt import, it's too late
 #if $generate_options in ('wx_gui', 'qt_gui', 'bokeh_gui')
