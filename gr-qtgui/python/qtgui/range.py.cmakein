@@ -21,7 +21,7 @@
 # Boston, MA 02110-1301, USA.
 #
 
-from PyQt5 import Qt, QtCore, QtWidgets
+@PY_QT_IMPORT@
 import util
 
 class Range(object):
