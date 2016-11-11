@@ -25,7 +25,7 @@ from PyQt4 import Qt, QtCore, QtGui
 from gnuradio import gr
 
 def check_set_qss():
-    app = QtGui.qApp
+    app = QtWidgets.qApp
     qssfile = gr.prefs().get_string("qtgui","qss","")
     if(len(qssfile)>0):
         try:
