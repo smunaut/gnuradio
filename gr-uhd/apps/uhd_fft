@@ -40,7 +40,7 @@ import sip
 import threading
 import time
 from distutils.version import StrictVersion
-from PyQt5 import Qt
+from PyQt5 import Qt, QtCore
 from gnuradio import eng_notation
 from gnuradio import eng_arg
 from gnuradio import gr
@@ -60,7 +60,7 @@ class uhd_fft(gr.top_block, Qt.QWidget, UHDApp):
     """
     def __init__(self, args):
         gr.top_block.__init__(self, "UHD FFT")
-        Qt.QWidget.__init__(self)
+        Qt.QWidget.__init__(self, args=args)
         UHDApp.__init__(self, args=args, prefix="UHD FFT")
         ##################################################
         # Init QT App
@@ -82,7 +82,7 @@ class uhd_fft(gr.top_block, Qt.QWidget, UHDApp):
         self.top_grid_layout = Qt.QGridLayout()
         self.top_layout.addLayout(self.top_grid_layout)
         self.settings = Qt.QSettings("GNU Radio", "uhd_fft")
-        self.restoreGeometry(self.settings.value("geometry").toByteArray())
+        self.restoreGeometry(self.settings.value("geometry", type=QtCore.QByteArray))
 
         ##################################################
         # Parameters

@@ -39,7 +39,7 @@ import threading
 import time
 from distutils.version import StrictVersion
 from PyQt5 import Qt
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, QByteArray
 from gnuradio import analog
 from gnuradio import eng_notation
 from gnuradio import gr
@@ -85,7 +85,7 @@ class uhd_siggen_gui(Qt.QWidget):
         self.top_grid_layout = Qt.QGridLayout()
         self.top_layout.addLayout(self.top_grid_layout)
         self.settings = Qt.QSettings("GNU Radio", "uhd_siggen_gui")
-        self.restoreGeometry(self.settings.value("geometry").toByteArray())
+        self.restoreGeometry(self.settings.value("geometry", type=QByteArray))
 
         ##################################################
         # Widgets + Controls
