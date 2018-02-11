@@ -522,7 +522,7 @@ class PlotCanvas(wx.Window):
                     self,
                     "Choose a file with extension bmp, gif, xbm, xpm, png, or jpg", ".", "",
                     "BMP files (*.bmp)|*.bmp|XBM files (*.xbm)|*.xbm|XPM file (*.xpm)|*.xpm|PNG files (*.png)|*.png|JPG files (*.jpg)|*.jpg",
-                    wx.SAVE|wx.OVERWRITE_PROMPT
+                    wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT
                     )
             try:
                 while 1:
@@ -1820,7 +1820,6 @@ def __test():
 
     class MyApp(wx.App):
         def OnInit(self):
-            wx.InitAllImageHandlers()
             frame = TestFrame(None, -1, "PlotCanvas")
             #frame.Show(True)
             self.SetTopWindow(frame)

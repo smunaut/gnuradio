@@ -50,7 +50,7 @@ class TextElement(object):
         """
         text (String)         - Text
         font (wx.Font)        - Font to draw with (None = System default)
-        foreground (wx.Color) - Color of the text
+        foreground (wx.Colour)- Color of the text
                 or (wx.Bitmap)- Bitmap to overlay the text with
         centered (bool)       - Center the text
 
@@ -317,7 +317,7 @@ class Text(object):
             text (string)           - displayed text
             font (wx.Font)          - if None, system default font will be used with font_size
             font_size (int)         - font size in points
-            foreground (wx.Color)   - Color of the text
+            foreground (wx.Colour)  - Color of the text
                     or (wx.Bitmap)  - Bitmap to overlay the text with
             centered (bool)         - should the text drawn centered towards position?
 
