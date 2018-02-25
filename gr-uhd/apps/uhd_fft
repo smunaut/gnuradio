@@ -40,7 +40,7 @@ import sip
 import threading
 import time
 from distutils.version import StrictVersion
-from PyQt4 import Qt
+from PyQt5 import Qt
 from gnuradio import eng_notation
 from gnuradio import eng_arg
 from gnuradio import gr
@@ -478,8 +478,8 @@ def main():
     Go, go, go!
     """
     args = setup_argparser().parse_args()
-    if StrictVersion(Qt.qVersion()) >= StrictVersion("4.5.0"):
-        Qt.QApplication.setGraphicsSystem(gr.prefs().get_string('qtgui','style','raster'))
+    #if StrictVersion(Qt.qVersion()) >= StrictVersion("4.5.0"):
+    #    Qt.QApplication.setGraphicsSystem(gr.prefs().get_string('qtgui','style','raster'))
     qapp = Qt.QApplication(sys.argv)
     tb = uhd_fft(args)
     tb.start()
@@ -487,7 +487,7 @@ def main():
     def quitting():
         tb.stop()
         tb.wait()
-    qapp.connect(qapp, Qt.SIGNAL("aboutToQuit()"), quitting)
+    qapp.aboutToQuit.connect(quitting)
     qapp.exec_()
     tb = None #to clean up Qt widgets
 
