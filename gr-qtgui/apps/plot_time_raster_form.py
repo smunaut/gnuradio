@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2013 Free Software Foundation, Inc.
+# Copyright 2013,2018 Free Software Foundation, Inc.
 #
 # This file is part of GNU Radio
 #
@@ -24,10 +24,10 @@ import sys, math
 from gnuradio import filter
 
 try:
-    from PyQt4 import QtGui, QtCore
+    from PyQt5 import QtWidgets, Qt
     import sip
 except ImportError:
-    print "Error: Program requires PyQt4."
+    sys.stderr.write("Error: Program requires PyQt5 and gr-qtgui.\n")
     sys.exit(1)
 
 try:
@@ -39,39 +39,35 @@ class plot_time_raster_form(plot_form):
     def __init__(self, top_block, title='', scale=1):
         plot_form.__init__(self, top_block, title, scale)
 
-        self.right_col_layout = QtGui.QVBoxLayout()
-        self.right_col_form = QtGui.QFormLayout()
+        self.right_col_layout = QtWidgets.QVBoxLayout()
+        self.right_col_form = QtWidgets.QFormLayout()
         self.right_col_layout.addLayout(self.right_col_form)
         self.layout.addLayout(self.right_col_layout, 1,4,1,1)
 
-        self.auto_scale = QtGui.QCheckBox("Auto Scale", self)
+        self.auto_scale = QtWidgets.QCheckBox("Auto Scale", self)
         if(self.top_block._auto_scale):
             self.auto_scale.setChecked(self.top_block._auto_scale)
-        self.connect(self.auto_scale, QtCore.SIGNAL("stateChanged(int)"),
-                     self.set_auto_scale)
+        self.auto_scale.stateChanged.connect(self.set_auto_scale)
         self.right_col_layout.addWidget(self.auto_scale)
 
-        self.ncols_edit = QtGui.QLineEdit(self)
+        self.ncols_edit = QtWidgets.QLineEdit(self)
         self.ncols_edit.setMinimumWidth(100)
         self.ncols_edit.setMaximumWidth(100)
-        self.ncols_edit.setText(QtCore.QString("%1").arg(top_block._ncols))
+        self.ncols_edit.setText("{0}".format(top_block._ncols))
         self.right_col_form.addRow("Num. Cols.", self.ncols_edit)
-        self.connect(self.ncols_edit, QtCore.SIGNAL("returnPressed()"),
-                     self.ncols_update)
+        self.ncols_edit.returnPressed.connect(self.ncols_update)
 
-        self.nrows_edit = QtGui.QLineEdit(self)
+        self.nrows_edit = QtWidgets.QLineEdit(self)
         self.nrows_edit.setMinimumWidth(100)
         self.nrows_edit.setMaximumWidth(100)
-        self.nrows_edit.setText(QtCore.QString("%1").arg(top_block._nrows))
+        self.nrows_edit.setText("{0}".format(top_block._nrows))
         self.right_col_form.addRow("Num. Rows.", self.nrows_edit)
-        self.connect(self.nrows_edit, QtCore.SIGNAL("returnPressed()"),
-                     self.nrows_update)
-
+        self.nrows_edit.returnPressed.connect(self.nrows_update)
 
         self.add_raster_control(self.right_col_layout)
 
     def add_raster_control(self, layout):
-        self._line_tabs = QtGui.QTabWidget()
+        self._line_tabs = QtWidgets.QTabWidget()
 
         self._line_pages = []
         self._line_forms = []
@@ -82,39 +78,35 @@ class plot_time_raster_form(plot_form):
         self._marker_edit = []
         self._alpha_edit = []
         for n in xrange(self.top_block._nsigs):
-            self._line_pages.append(QtGui.QDialog())
-            self._line_forms.append(QtGui.QFormLayout(self._line_pages[-1]))
+            self._line_pages.append(QtWidgets.QDialog())
+            self._line_forms.append(QtWidgets.QFormLayout(self._line_pages[-1]))
 
             label = self.top_block.gui_snk.line_label(n)
-            self._label_edit.append(QtGui.QLineEdit(self))
+            self._label_edit.append(QtWidgets.QLineEdit(self))
             self._label_edit[-1].setMinimumWidth(125)
             self._label_edit[-1].setMaximumWidth(125)
-            self._label_edit[-1].setText(QtCore.QString("%1").arg(label))
+            self._label_edit[-1].setText("{0}".format(label))
             self._line_forms[-1].addRow("Label:", self._label_edit[-1])
-            self.connect(self._label_edit[-1], QtCore.SIGNAL("returnPressed()"),
-                         self.update_line_label)
+            self._label_edit[-1].returnPressed.connect(self.update_line_label)
 
             self._qtcolormaps = ["Multi Color", "White Hot",
                                  "Black Hot", "Incandescent"]
-            self._color_edit.append(QtGui.QComboBox(self))
+            self._color_edit.append(QtWidgets.QComboBox(self))
             self._color_edit[-1].addItems(self._qtcolormaps)
             self._color_edit[-1].setCurrentIndex(1)
             self._line_forms[-1].addRow("Color Map:", self._color_edit[-1])
-            self.connect(self._color_edit[-1],
-                         QtCore.SIGNAL("currentIndexChanged(int)"),
-                         self.update_color_map)
+            self._color_edit[-1].currentIndexChanged.connect(self.update_color_map)
 
-            alpha_val = QtGui.QDoubleValidator(0, 1.0, 2, self)
+            alpha_val = QtWidgets.QDoubleValidator(0, 1.0, 2, self)
             alpha_val.setTop(1.0)
             alpha = self.top_block.gui_snk.line_alpha(n)
-            self._alpha_edit.append(QtGui.QLineEdit(self))
+            self._alpha_edit.append(QtWidgets.QLineEdit(self))
             self._alpha_edit[-1].setMinimumWidth(50)
             self._alpha_edit[-1].setMaximumWidth(100)
-            self._alpha_edit[-1].setText(QtCore.QString("%1").arg(alpha))
+            self._alpha_edit[-1].setText("{0}".format(alpha))
             self._alpha_edit[-1].setValidator(alpha_val)
             self._line_forms[-1].addRow("Alpha:", self._alpha_edit[-1])
-            self.connect(self._alpha_edit[-1], QtCore.SIGNAL("returnPressed()"),
-                         self.update_line_alpha)
+            self._alpha_edit[-1].returnPressed.connect(self.update_line_alpha)
 
             self._line_tabs.addTab(self._line_pages[-1], "{0}".format(label))
 
@@ -153,5 +145,3 @@ class plot_time_raster_form(plot_form):
 
         nsamps = int(math.ceil(self.top_block._ncols*(n+1)))
         self.top_block.reset(self._start, nsamps)
-
-

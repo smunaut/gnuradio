@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2013 Free Software Foundation, Inc.
+# Copyright 2013,2018 Free Software Foundation, Inc.
 #
 # This file is part of GNU Radio
 #
@@ -27,16 +27,18 @@ import os, sys
 
 try:
     from gnuradio import qtgui
-    from PyQt4 import QtGui, QtCore
+    from PyQt5 import QtWidgets, Qt
     import sip
 except ImportError:
-    print "Error: Program requires PyQt4 and gr-qtgui."
+    import sys
+    sys.stderr.write("Error: Program requires PyQt5 and gr-qtgui.\n")
     sys.exit(1)
 
 try:
     import scipy
 except ImportError:
-    print "Error: Scipy required (www.scipy.org)."
+    import sys
+    sys.stderr.write("Error: Scipy required (www.scipy.org).\n")
     sys.exit(1)
 
 try:
@@ -68,7 +70,7 @@ class plot_base(gr.top_block):
         self._y_value = 1
         self.gui_y_axis = None
 
-        self.qapp = QtGui.QApplication(sys.argv)
+        self.qapp = QtWidgets.QApplication(sys.argv)
 
     def setup(self):
         self.skip = blocks.skiphead(self.dsize, self._start)
@@ -103,7 +105,7 @@ class plot_base(gr.top_block):
 
         # Get Python Qt references
         pyQt  = self.gui_snk.pyqwidget()
-        self.pyWin = sip.wrapinstance(pyQt, QtGui.QWidget)
+        self.pyWin = sip.wrapinstance(pyQt, QtWidgets.QWidget)
 
         self._is_setup = True
 

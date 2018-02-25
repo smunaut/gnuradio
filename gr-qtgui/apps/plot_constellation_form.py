@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2013 Free Software Foundation, Inc.
+# Copyright 2013,2018 Free Software Foundation, Inc.
 #
 # This file is part of GNU Radio
 #
@@ -24,10 +24,11 @@ import sys
 from gnuradio import filter
 
 try:
-    from PyQt4 import QtGui, QtCore
+    from PyQt5 import QtWidgets, Qt
     import sip
 except ImportError:
-    print "Error: Program requires PyQt4."
+    import sys
+    sys.stderr.write("Error: Program requires PyQt5.\n")
     sys.exit(1)
 
 try:
@@ -39,8 +40,8 @@ class plot_constellation_form(plot_form):
     def __init__(self, top_block, title='', scale=1):
         plot_form.__init__(self, top_block, title, scale)
 
-        self.right_col_layout = QtGui.QVBoxLayout()
-        self.right_col_form = QtGui.QFormLayout()
+        self.right_col_layout = QtWidgets.QVBoxLayout()
+        self.right_col_form = QtWidgets.QFormLayout()
         self.right_col_layout.addLayout(self.right_col_form)
         self.layout.addLayout(self.right_col_layout, 1,4,1,1)
 
@@ -51,12 +52,11 @@ class plot_constellation_form(plot_form):
         self.ybar.setSingleStep(self._pos_scale*(max(self.top_block._y_range/10, 0.010)))
         self.ybar.setPageStep(self._pos_scale*(max(self.top_block._y_range/2, 0.010)))
 
-        self.auto_scale = QtGui.QCheckBox("Auto Scale", self)
+        self.auto_scale = QtWidgets.QCheckBox("Auto Scale", self)
         if(self.top_block._auto_scale):
             self.auto_scale.setChecked(self.top_block._auto_scale)
         self.set_auto_scale(self.top_block._auto_scale)
-        self.connect(self.auto_scale, QtCore.SIGNAL("stateChanged(int)"),
-                     self.set_auto_scale)
+        self.auto_scale.stateChanged.connect(self.set_auto_scale)
         self.right_col_layout.addWidget(self.auto_scale)
 
         self.ybar.setValue(1000*self.top_block._y_value)

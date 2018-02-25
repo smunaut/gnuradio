@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2012 Free Software Foundation, Inc.
+# Copyright 2012,2018 Free Software Foundation, Inc.
 #
 # This file is part of GNU Radio
 #
@@ -21,17 +21,18 @@
 #
 
 try:
-    from PyQt4 import QtGui, QtCore
+    from PyQt5 import QtWidgets, Qt
     import sip
 except ImportError:
-    print "Error: Program requires PyQt4."
+    import sys
+    sys.stderr.write("Error: Program requires PyQt5.\n")
     sys.exit(1)
 
 import numpy
 
-class plot_form(QtGui.QWidget):
+class plot_form(QtWidgets.QWidget):
     def __init__(self, top_block, title='', scale=1):
-        QtGui.QWidget.__init__(self, None)
+        QtWidgets.QWidget.__init__(self, None)
 
         self._start = 0
         self._end = 0
@@ -44,81 +45,73 @@ class plot_form(QtGui.QWidget):
 
         self.setWindowTitle(title)
 
-        self.layout = QtGui.QGridLayout(self)
+        self.layout = QtWidgets.QGridLayout(self)
         self.layout.addWidget(top_block.get_gui(), 1,2,1,2)
 
         # Create a save action
-        self.save_act = QtGui.QAction("Save", self)
-        self.save_act.setShortcut(QtGui.QKeySequence.Save)
-        self.connect(self.save_act, QtCore.SIGNAL("triggered()"),
-                     self.save_figure)
+        self.save_act = QtWidgets.QAction("Save", self)
+        self.save_act.setShortcut(QtWidgets.QKeySequence.Save)
+        self.save_act.triggered.connect(self.save_figure)
 
         # Create an exit action
-        self.exit_act = QtGui.QAction("Exit", self)
-        self.exit_act.setShortcut(QtGui.QKeySequence.Close)
-        self.connect(self.exit_act, QtCore.SIGNAL("triggered()"),
-                     self.close)
+        self.exit_act = QtWidgets.QAction("Exit", self)
+        self.exit_act.setShortcut(QtWidgets.QKeySequence.Close)
+        self.exit_act.triggered.connect(self.close)
 
         # Create a menu for the window
-        self.menu = QtGui.QToolBar("Menu", self)
+        self.menu = QtWidgets.QToolBar("Menu", self)
         self.menu.addAction(self.save_act)
         self.menu.addAction(self.exit_act)
 
         self.layout.addWidget(self.menu, 0,0,1,4)
 
-        self.left_col_form = QtGui.QFormLayout()
+        self.left_col_form = QtWidgets.QFormLayout()
         self.layout.addLayout(self.left_col_form, 1,0,1,1)
         self.layout.setColumnStretch(0, 0)
         self.layout.setColumnStretch(2, 1)
 
         # Create Edit boxes for X-axis start/stop
-        self.size_val = QtGui.QIntValidator(0, top_block._max_nsamps, self)
+        self.size_val = QtWidgets.QIntValidator(0, top_block._max_nsamps, self)
 
-        self.start_edit = QtGui.QLineEdit(self)
+        self.start_edit = QtWidgets.QLineEdit(self)
         self.start_edit.setMinimumWidth(100)
         self.start_edit.setMaximumWidth(100)
-        self.start_edit.setText(QtCore.QString("%1").arg(top_block._start))
+        self.start_edit.setText("{0}".format(top_block._start))
         self.start_edit.setValidator(self.size_val)
         self.left_col_form.addRow("Start:", self.start_edit)
-        self.connect(self.start_edit, QtCore.SIGNAL("returnPressed()"),
-                     self.update_xaxis_pos)
+        self.start_edit.returnPressed.connect(self.update_xaxis_pos)
 
         end = top_block._start + top_block._nsamps
-        self.end_edit = QtGui.QLineEdit(self)
+        self.end_edit = QtWidgets.QLineEdit(self)
         self.end_edit.setMinimumWidth(100)
         self.end_edit.setMaximumWidth(100)
-        self.end_edit.setText(QtCore.QString("%1").arg(end))
+        self.end_edit.setText("{0}".format(end))
         self.end_edit.setValidator(self.size_val)
         self.left_col_form.addRow("End:", self.end_edit)
-        self.connect(self.end_edit, QtCore.SIGNAL("returnPressed()"),
-                     self.update_xaxis_pos)
+        self.end_edit.returnPressed.connect(self.update_xaxis_pos)
 
         # Create a slider to move the position in the file
-        self.posbar = QtGui.QSlider(QtCore.Qt.Horizontal, self)
+        self.posbar = QtWidgets.QSlider(Qt.Qt.Horizontal, self)
         self.posbar.setMaximum(self.top_block._max_nsamps)
         self.posbar.setPageStep(self.top_block._nsamps)
-        self.connect(self.posbar, QtCore.SIGNAL("valueChanged(int)"),
-                     self.update_xaxis_slider)
+        self.posbar.valueChanged.connect(self.update_xaxis_slider)
         self.layout.addWidget(self.posbar, 2,2,1,1)
 
         # Create Edit boxes for Y-axis min/max
-        self.y_max_edit = QtGui.QLineEdit(self)
+        self.y_max_edit = QtWidgets.QLineEdit(self)
         self.y_max_edit.setMinimumWidth(100)
         self.y_max_edit.setMaximumWidth(100)
         self.left_col_form.addRow("Y Max:", self.y_max_edit)
-        self.connect(self.y_max_edit, QtCore.SIGNAL("editingFinished()"),
-                     self.update_yaxis_pos)
+        self.y_max_edit.editingFinished.connect(self.update_yaxis_pos)
 
-        self.y_min_edit = QtGui.QLineEdit(self)
+        self.y_min_edit = QtWidgets.QLineEdit(self)
         self.y_min_edit.setMinimumWidth(100)
         self.y_min_edit.setMaximumWidth(100)
         self.left_col_form.addRow("Y Min:", self.y_min_edit)
-        self.connect(self.y_min_edit, QtCore.SIGNAL("editingFinished()"),
-                     self.update_yaxis_pos)
+        self.y_min_edit.editingFinished.connect(self.update_yaxis_pos)
 
-        self.grid_check = QtGui.QCheckBox("Grid", self)
-        self.connect(self.grid_check, QtCore.SIGNAL("stateChanged(int)"),
-                     self.set_grid_check)
+        self.grid_check = QtWidgets.QCheckBox("Grid", self)
+        self.grid_check.stateChanged.connect(self.set_grid_check)
         self.left_col_form.addWidget(self.grid_check)
 
         # Create a slider to move the plot's y-axis offset
@@ -126,42 +119,39 @@ class plot_form(QtGui.QWidget):
         _ymin = numpy.int32(max(numpy.iinfo(numpy.int32).min, self.top_block._y_min))
         _yrng = numpy.int32(min(numpy.iinfo(numpy.int32).max, self.top_block._y_range))
         _yval = numpy.int32(min(numpy.iinfo(numpy.int32).max, self.top_block._y_value))
-        self.ybar = QtGui.QSlider(QtCore.Qt.Vertical, self)
+        self.ybar = QtWidgets.QSlider(Qt.Qt.Vertical, self)
         self.ybar.setMinimum(self._pos_scale*_ymin)
         self.ybar.setMaximum(self._pos_scale*_ymax)
         self.ybar.setSingleStep(self._pos_scale*(_yrng/10))
         self.ybar.setPageStep(self._pos_scale*(_yrng/2))
         self.ybar.setValue(self._pos_scale*_ymax)
-        self.connect(self.ybar, QtCore.SIGNAL("valueChanged(int)"),
-                     self.update_yaxis_slider)
+        self.ybar.valueChanged.connect(self.update_yaxis_slider)
         self.layout.addWidget(self.ybar, 1,1,1,1)
 
         self.gui_y_axis(top_block._y_value-top_block._y_range, top_block._y_value)
 
         # Create an edit box for the Sample Rate
         sr = top_block._samp_rate
-        self.samp_rate_edit = QtGui.QLineEdit(self)
+        self.samp_rate_edit = QtWidgets.QLineEdit(self)
         self.samp_rate_edit.setMinimumWidth(100)
         self.samp_rate_edit.setMaximumWidth(100)
-        self.samp_rate_edit.setText(QtCore.QString("%1").arg(sr))
+        self.samp_rate_edit.setText("{0}".format(sr))
         self.left_col_form.addRow("Sample Rate:", self.samp_rate_edit)
-        self.connect(self.samp_rate_edit, QtCore.SIGNAL("returnPressed()"),
-                     self.update_samp_rate)
+        self.samp_rate_edit.returnPressed.connect(self.update_samp_rate)
 
         # Create an edit box for the center frequency
         freq = top_block._center_freq
-        self.freq_edit = QtGui.QLineEdit(self)
+        self.freq_edit = QtWidgets.QLineEdit(self)
         self.freq_edit.setMinimumWidth(100)
         self.freq_edit.setMaximumWidth(100)
-        self.freq_edit.setText(QtCore.QString("%1").arg(freq))
+        self.freq_edit.setText("{0}".format(freq))
         self.left_col_form.addRow("Frequency:", self.freq_edit)
-        self.connect(self.freq_edit, QtCore.SIGNAL("returnPressed()"),
-                     self.update_samp_rate)
+        self.freq_edit.returnPressed.connect(self.update_samp_rate)
 
         self.resize(1000, 500)
 
     def add_line_control(self, layout):
-        self._line_tabs = QtGui.QTabWidget()
+        self._line_tabs = QtWidgets.QTabWidget()
 
         self._line_pages = []
         self._line_forms = []
@@ -172,51 +162,46 @@ class plot_form(QtGui.QWidget):
         self._marker_edit = []
         self._alpha_edit = []
         for n in xrange(self.top_block._nsigs):
-            self._line_pages.append(QtGui.QDialog())
-            self._line_forms.append(QtGui.QFormLayout(self._line_pages[-1]))
+            self._line_pages.append(QtWidgets.QDialog())
+            self._line_forms.append(QtWidgets.QFormLayout(self._line_pages[-1]))
 
             label = self.top_block.gui_snk.line_label(n)
-            self._label_edit.append(QtGui.QLineEdit(self))
+            self._label_edit.append(QtWidgets.QLineEdit(self))
             self._label_edit[-1].setMinimumWidth(125)
             self._label_edit[-1].setMaximumWidth(125)
-            self._label_edit[-1].setText(QtCore.QString("%1").arg(label))
+            self._label_edit[-1].setText("{0}".format(label))
             self._line_forms[-1].addRow("Label:", self._label_edit[-1])
-            self.connect(self._label_edit[-1], QtCore.SIGNAL("returnPressed()"),
-                         self.update_line_label)
+            self._label_edit[-1].returnPressed.connect(self.update_line_label)
 
-            width_val = QtGui.QIntValidator(1, 20, self)
-            self._size_edit.append(QtGui.QLineEdit(self))
+            width_val = QtWidgets.QIntValidator(1, 20, self)
+            self._size_edit.append(QtWidgets.QLineEdit(self))
             self._size_edit[-1].setValidator(width_val)
             self._size_edit[-1].setMinimumWidth(100)
             self._size_edit[-1].setMaximumWidth(100)
-            self._size_edit[-1].setText(QtCore.QString("%1").arg(1))
+            self._size_edit[-1].setText("{0}".format(1))
             self._line_forms[-1].addRow("Width:", self._size_edit[-1])
-            self.connect(self._size_edit[-1], QtCore.SIGNAL("returnPressed()"),
-                         self.update_line_size)
+            self._size_edit[-1].returnPressed.connect(self.update_line_size)
 
             color = self.top_block.gui_snk.line_color(n)
-            self._color_edit.append(QtGui.QLineEdit(self))
+            self._color_edit.append(QtWidgets.QLineEdit(self))
             self._color_edit[-1].setMinimumWidth(100)
             self._color_edit[-1].setMaximumWidth(100)
-            self._color_edit[-1].setText(QtCore.QString("%1").arg(color))
+            self._color_edit[-1].setText("{0}".format(color))
             self._line_forms[-1].addRow("Color:", self._color_edit[-1])
-            self.connect(self._color_edit[-1], QtCore.SIGNAL("returnPressed()"),
-                         self.update_line_color)
+            self._color_edit[-1].returnPressed.connect(self.update_line_color)
 
-            self._qtstyles = {"None": QtCore.Qt.NoPen,
-                              "Solid": QtCore.Qt.SolidLine,
-                              "Dash": QtCore.Qt.DashLine,
-                              "Dot": QtCore.Qt.DotLine,
-                              "DashDot": QtCore.Qt.DashDotLine,
-                              "DashDotDot": QtCore.Qt.DashDotDotLine}
-            self._style_edit.append(QtGui.QComboBox(self))
+            self._qtstyles = {"None": Qt.Qt.NoPen,
+                              "Solid": Qt.Qt.SolidLine,
+                              "Dash": Qt.Qt.DashLine,
+                              "Dot": Qt.Qt.DotLine,
+                              "DashDot": Qt.Qt.DashDotLine,
+                              "DashDotDot": Qt.Qt.DashDotDotLine}
+            self._style_edit.append(QtWidgets.QComboBox(self))
             self._style_edit[-1].addItems(["None", "Solid", "Dash",
                                           "Dot", "DashDot", "DashDotDot"])
             self._style_edit[-1].setCurrentIndex(1)
             self._line_forms[-1].addRow("Style:", self._style_edit[-1])
-            self.connect(self._style_edit[-1],
-                         QtCore.SIGNAL("currentIndexChanged(int)"),
-                         self.update_line_style)
+            self._style_edit[-1].currentIndexChanged.connect(self.update_line_style)
 
             # A bit dangerous, this. If QWT ever changes the lineup,
             # we will have to adjust this, too. But we also can't
@@ -236,28 +221,25 @@ class plot_form(QtGui.QWidget):
                                 "Star 1": 12,
                                 "Star 2": 13,
                                 "Hexagon": 14}
-            self._marker_edit.append(QtGui.QComboBox(self))
+            self._marker_edit.append(QtWidgets.QComboBox(self))
             self._marker_edit[-1].addItems(["None", "Circle", "Rectangle", "Diamond",
                                             "Triangle", "Down Triangle", "Left Triangle",
                                             "Right Triangle", "Cross", "X-Cross",
                                             "Horiz. Line", "Vert. Line", "Star 1",
                                             "Star 2", "Hexagon"])
             self._line_forms[-1].addRow("Marker:", self._marker_edit[-1])
-            self.connect(self._marker_edit[-1],
-                         QtCore.SIGNAL("currentIndexChanged(int)"),
-                         self.update_line_marker)
+            self._marker_edit[-1].currentIndexChanged.connect(self.update_line_marker)
 
-            alpha_val = QtGui.QDoubleValidator(0, 1.0, 2, self)
+            alpha_val = QtWidgets.QDoubleValidator(0, 1.0, 2, self)
             alpha_val.setTop(1.0)
             alpha = self.top_block.gui_snk.line_alpha(n)
-            self._alpha_edit.append(QtGui.QLineEdit(self))
+            self._alpha_edit.append(QtWidgets.QLineEdit(self))
             self._alpha_edit[-1].setMinimumWidth(50)
             self._alpha_edit[-1].setMaximumWidth(100)
-            self._alpha_edit[-1].setText(QtCore.QString("%1").arg(alpha))
+            self._alpha_edit[-1].setText("{0]".format(alpha))
             self._alpha_edit[-1].setValidator(alpha_val)
             self._line_forms[-1].addRow("Alpha:", self._alpha_edit[-1])
-            self.connect(self._alpha_edit[-1], QtCore.SIGNAL("returnPressed()"),
-                         self.update_line_alpha)
+            self._alpha_edit[-1].returnPressed.connect(self.update_line_alpha)
 
             self._line_tabs.addTab(self._line_pages[-1], "{0}".format(label))
 
@@ -303,10 +285,10 @@ class plot_form(QtGui.QWidget):
         newend = self.end_edit.text().toUInt()[0]
         if(newstart != self._start or newend != self._end):
             if(newend < newstart):
-                QtGui.QMessageBox.information(
+                QtWidgets.QMessageBox.information(
                     self, "Warning",
                     "End sample is less than start sample.",
-                    QtGui.QMessageBox.Ok);
+                    QtWidgets.QMessageBox.Ok);
             else:
                 newnsamps = newend - newstart
                 self.top_block.reset(newstart, newnsamps)
@@ -377,13 +359,13 @@ class plot_form(QtGui.QWidget):
             self.top_block.gui_snk.enable_grid(False)
 
     def save_figure(self):
-        qpix = QtGui.QPixmap.grabWidget(self.top_block.pyWin)
+        qpix = QtWidgets.QPixmap.grabWidget(self.top_block.pyWin)
         types = "JPEG file (*.jpg);;" + \
             "Portable Network Graphics file (*.png);;" + \
             "Bitmap file (*.bmp);;" + \
             "TIFF file (*.tiff)"
-        filebox = QtGui.QFileDialog(self, "Save Image", "./", types)
-        filebox.setViewMode(QtGui.QFileDialog.Detail)
+        filebox = QtWidgets.QFileDialog(self, "Save Image", "./", types)
+        filebox.setViewMode(QtWidgets.QFileDialog.Detail)
         if(filebox.exec_()):
             filename = filebox.selectedFiles()[0]
             filetype = filebox.selectedNameFilter()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2012,2013 Free Software Foundation, Inc.
+# Copyright 2012,2013,2018 Free Software Foundation, Inc.
 #
 # This file is part of GNU Radio
 #
@@ -31,10 +31,11 @@ except ImportError:
 
 try:
     from gnuradio import qtgui
-    from PyQt4 import QtGui, QtCore
+    from PyQt5 import QtWidgets, Qt
     import sip
 except ImportError:
-    print "Error: Program requires PyQt4 and gr-qtgui."
+    import sys
+    sys.stderr.write("Error: Program requires PyQt5 and gr-qtgui.\n")
     sys.exit(1)
 
 class spectrogram_plot_i(plot_base.plot_base):

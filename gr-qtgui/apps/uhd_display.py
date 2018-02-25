@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2009,2011 Free Software Foundation, Inc.
+# Copyright 2009,2011,2018 Free Software Foundation, Inc.
 #
 # This file is part of GNU Radio
 #
@@ -31,10 +31,10 @@ import sys
 
 try:
     from gnuradio import qtgui
-    from PyQt4 import QtGui, QtCore
+    from PyQt5 import QtWidgets, Qt
     import sip
 except ImportError:
-    print "Error: Program requires PyQt4 and gr-qtgui."
+    sys.stderr.write("Error: Program requires PyQt5 and gr-qtgui.\n")
     sys.exit(1)
 
 try:
@@ -50,10 +50,10 @@ except ImportError:
 # ////////////////////////////////////////////////////////////////////
 
 
-class main_window(QtGui.QMainWindow):
+class main_window(QtWidgets.QMainWindow):
     def __init__(self, snk, fg, parent=None):
 
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.gui = Ui_MainWindow()
         self.gui.setupUi(self)
 
@@ -62,28 +62,20 @@ class main_window(QtGui.QMainWindow):
         # Add the qtsnk widgets to the layout box
         self.gui.sinkLayout.addWidget(snk)
 
-        self.gui.dcGainEdit.setText(QtCore.QString("%1").arg(0.001))
+        self.gui.dcGainEdit.setText("{0}".format(0.001))
 
         # Connect up some signals
-        self.connect(self.gui.pauseButton, QtCore.SIGNAL("clicked()"),
-                     self.pauseFg)
-        self.connect(self.gui.frequencyEdit, QtCore.SIGNAL("editingFinished()"),
-                     self.frequencyEditText)
-        self.connect(self.gui.gainEdit, QtCore.SIGNAL("editingFinished()"),
-                     self.gainEditText)
-        self.connect(self.gui.bandwidthEdit, QtCore.SIGNAL("editingFinished()"),
-                     self.bandwidthEditText)
-        self.connect(self.gui.amplifierEdit, QtCore.SIGNAL("editingFinished()"),
-                     self.amplifierEditText)
+        self.gui.pauseButton.clicked.connect(self.pauseFg)
+        self.gui.frequencyEdit.editingFinished.connect(self.frequencyEditText)
+        self.gui.gainEdit.editingFinished.connect(self.gainEditText)
+        self.gui.bandwidthEdit.editingFinished.connect(self.bandwidthEditText)
+        self.gui.amplifierEdit.editingFinished.connect(self.amplifierEditText)
 
-        self.connect(self.gui.actionSaveData, QtCore.SIGNAL("activated()"),
-                     self.saveData)
-        self.gui.actionSaveData.setShortcut(QtGui.QKeySequence.Save)
+        self.gui.actionSaveData.activated.connect(self.saveData)
+        self.gui.actionSaveData.setShortcut(QtWidgets.QKeySequence.Save)
 
-        self.connect(self.gui.dcGainEdit, QtCore.SIGNAL("editingFinished()"),
-                     self.dcGainEditText)
-        self.connect(self.gui.dcCancelCheckBox, QtCore.SIGNAL("clicked(bool)"),
-                     self.dcCancelClicked)
+        self.gui.dcGainEdit.editingFinished.connect(self.dcGainEditText)
+        self.gui.dcCancelCheckBox.clicked.connect(self.dcCancelClicked)
 
     def pauseFg(self):
         if(self.gui.pauseButton.text() == "Pause"):
@@ -99,20 +91,20 @@ class main_window(QtGui.QMainWindow):
     def set_frequency(self, freq):
         self.freq = freq
         sfreq = eng_notation.num_to_str(self.freq)
-        self.gui.frequencyEdit.setText(QtCore.QString("%1").arg(sfreq))
+        self.gui.frequencyEdit.setText("{0}".format(sfreq))
 
     def set_gain(self, gain):
         self.gain = gain
-        self.gui.gainEdit.setText(QtCore.QString("%1").arg(self.gain))
+        self.gui.gainEdit.setText("{0}".format(self.gain))
 
     def set_bandwidth(self, bw):
         self.bw = bw
         sbw = eng_notation.num_to_str(self.bw)
-        self.gui.bandwidthEdit.setText(QtCore.QString("%1").arg(sbw))
+        self.gui.bandwidthEdit.setText("{0}".format(sbw))
 
     def set_amplifier(self, amp):
         self.amp = amp
-        self.gui.amplifierEdit.setText(QtCore.QString("%1").arg(self.amp))
+        self.gui.amplifierEdit.setText("{0}".format(self.amp))
 
 
     # Functions called when signals are triggered in the GUI
@@ -149,7 +141,7 @@ class main_window(QtGui.QMainWindow):
             pass
 
     def saveData(self):
-        fileName = QtGui.QFileDialog.getSaveFileName(self, "Save data to file", ".");
+        fileName = QtWidgets.QFileDialog.getSaveFileName(self, "Save data to file", ".");
         if(len(fileName)):
             self.fg.save_to_file(str(fileName))
 
@@ -170,7 +162,7 @@ class my_top_block(gr.top_block):
         self.options = options
         self.show_debug_info = True
 
-        self.qapp = QtGui.QApplication(sys.argv)
+        self.qapp = QtWidgets.QApplication(sys.argv)
 
         self.u = uhd.usrp_source(device_addr=options.address, stream_args=uhd.stream_args('fc32'))
 
@@ -218,8 +210,8 @@ class my_top_block(gr.top_block):
 
         # Get the reference pointer to the SpectrumDisplayForm QWidget
         # Wrap the pointer as a PyQt SIP object
-        #     This can now be manipulated as a PyQt4.QtGui.QWidget
-        self.pysink = sip.wrapinstance(self.snk.pyqwidget(), QtGui.QWidget)
+        #     This can now be manipulated as a PyQt5.QtWidgets.QWidget
+        self.pysink = sip.wrapinstance(self.snk.pyqwidget(), QtWidgets.QWidget)
 
         self.main_win = main_window(self.pysink, self)
 

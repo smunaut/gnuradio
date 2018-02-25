@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2013 Free Software Foundation, Inc.
+# Copyright 2013,2018 Free Software Foundation, Inc.
 #
 # This file is part of GNU Radio
 #
@@ -24,10 +24,10 @@ import sys
 from gnuradio import filter
 
 try:
-    from PyQt4 import QtGui, QtCore
+    from PyQt5 import QtWidgets, Qt
     import sip
 except ImportError:
-    print "Error: Program requires PyQt4."
+    sys.stderr.write("Error: Program requires PyQt5.\n")
     sys.exit(1)
 
 try:
@@ -39,45 +39,40 @@ class plot_spectrogram_form(plot_form):
     def __init__(self, top_block, title=''):
         plot_form.__init__(self, top_block, title)
 
-        self.right_col_layout = QtGui.QVBoxLayout()
-        self.right_col_form = QtGui.QFormLayout()
+        self.right_col_layout = QtWidgets.QVBoxLayout()
+        self.right_col_form = QtWidgets.QFormLayout()
         self.right_col_layout.addLayout(self.right_col_form)
         self.layout.addLayout(self.right_col_layout, 1,4,1,1)
 
-        self.psd_size_val = QtGui.QIntValidator(0, 2**18, self)
-        self.psd_size_edit = QtGui.QLineEdit(self)
+        self.psd_size_val = QtWidgets.QIntValidator(0, 2**18, self)
+        self.psd_size_edit = QtWidgets.QLineEdit(self)
         self.psd_size_edit.setMinimumWidth(50)
         self.psd_size_edit.setMaximumWidth(100)
-        self.psd_size_edit.setText(QtCore.QString("%1").arg(top_block._psd_size))
+        self.psd_size_edit.setText("{0}".format(top_block._psd_size))
         self.psd_size_edit.setValidator(self.psd_size_val)
         self.right_col_form.addRow("FFT Size:", self.psd_size_edit)
-        self.connect(self.psd_size_edit, QtCore.SIGNAL("returnPressed()"),
-                     self.update_psd_size)
+        self.psd_size_edit.returnPressed.connect(self.update_psd_size)
 
-        self.psd_win_combo = QtGui.QComboBox(self)
+        self.psd_win_combo = QtWidgets.QComboBox(self)
         self.psd_win_combo.addItems(["None", "Hamming", "Hann", "Blackman",
                                      "Rectangular", "Kaiser", "Blackman-harris"])
         self.psd_win_combo.setCurrentIndex(self.top_block.gui_snk.fft_window()+1)
         self.right_col_form.addRow("Window:", self.psd_win_combo)
-        self.connect(self.psd_win_combo,
-                     QtCore.SIGNAL("currentIndexChanged(int)"),
-                     self.update_psd_win)
+        self.psd_win_combo.currentIndexChanged.connect(self.update_psd_win)
 
-        self.psd_avg_val = QtGui.QDoubleValidator(0, 1.0, 4, self)
-        self.psd_avg_edit = QtGui.QLineEdit(self)
+        self.psd_avg_val = QtWidgets.QDoubleValidator(0, 1.0, 4, self)
+        self.psd_avg_edit = QtWidgets.QLineEdit(self)
         self.psd_avg_edit.setMinimumWidth(50)
         self.psd_avg_edit.setMaximumWidth(100)
-        self.psd_avg_edit.setText(QtCore.QString("%1").arg(top_block._avg))
+        self.psd_avg_edit.setText("{0}".format(top_block._avg))
         self.psd_avg_edit.setValidator(self.psd_avg_val)
         self.right_col_form.addRow("Average:", self.psd_avg_edit)
-        self.connect(self.psd_avg_edit, QtCore.SIGNAL("returnPressed()"),
-                     self.update_psd_avg)
+        self.psd_avg_edit.returnPressed.connect(self.update_psd_avg)
 
-        self.autoscale_button = QtGui.QPushButton("Auto Scale", self)
+        self.autoscale_button = QtWidgets.QPushButton("Auto Scale", self)
         self.autoscale_button.setMaximumWidth(100)
         self.right_col_layout.addWidget(self.autoscale_button)
-        self.connect(self.autoscale_button, QtCore.SIGNAL("clicked()"),
-                     self.spectrogram_auto_scale)
+        self.autoscale_button.clicked.connect(self.spectrogram_auto_scale)
 
         self.add_spectrogram_control(self.right_col_layout)
 
@@ -103,7 +98,7 @@ class plot_spectrogram_form(plot_form):
                                  self.top_block._nsamps)
 
     def add_spectrogram_control(self, layout):
-        self._line_tabs = QtGui.QTabWidget()
+        self._line_tabs = QtWidgets.QTabWidget()
 
         self._line_pages = []
         self._line_forms = []
@@ -114,38 +109,34 @@ class plot_spectrogram_form(plot_form):
         self._marker_edit = []
         self._alpha_edit = []
         for n in xrange(self.top_block._nsigs):
-            self._line_pages.append(QtGui.QDialog())
-            self._line_forms.append(QtGui.QFormLayout(self._line_pages[-1]))
+            self._line_pages.append(QtWidgets.QDialog())
+            self._line_forms.append(QtWidgets.QFormLayout(self._line_pages[-1]))
 
             label = self.top_block.gui_snk.line_label(n)
-            self._label_edit.append(QtGui.QLineEdit(self))
+            self._label_edit.append(QtWidgets.QLineEdit(self))
             self._label_edit[-1].setMinimumWidth(125)
             self._label_edit[-1].setMaximumWidth(125)
-            self._label_edit[-1].setText(QtCore.QString("%1").arg(label))
+            self._label_edit[-1].setText("{0}".format(label))
             self._line_forms[-1].addRow("Label:", self._label_edit[-1])
-            self.connect(self._label_edit[-1], QtCore.SIGNAL("returnPressed()"),
-                         self.update_line_label)
+            self._label_edit[-1].returnPressed.connect(self.update_line_label)
 
             self._qtcolormaps = ["Multi Color", "White Hot",
                                  "Black Hot", "Incandescent"]
-            self._color_edit.append(QtGui.QComboBox(self))
+            self._color_edit.append(QtWidgets.QComboBox(self))
             self._color_edit[-1].addItems(self._qtcolormaps)
             self._line_forms[-1].addRow("Color Map:", self._color_edit[-1])
-            self.connect(self._color_edit[-1],
-                         QtCore.SIGNAL("currentIndexChanged(int)"),
-                         self.update_color_map)
+            self._color_edit[-1].currentIndexChanged.connect(self.update_color_map)
 
-            alpha_val = QtGui.QDoubleValidator(0, 1.0, 2, self)
+            alpha_val = QtWidgets.QDoubleValidator(0, 1.0, 2, self)
             alpha_val.setTop(1.0)
             alpha = self.top_block.gui_snk.line_alpha(n)
-            self._alpha_edit.append(QtGui.QLineEdit(self))
+            self._alpha_edit.append(QtWidgets.QLineEdit(self))
             self._alpha_edit[-1].setMinimumWidth(50)
             self._alpha_edit[-1].setMaximumWidth(100)
-            self._alpha_edit[-1].setText(QtCore.QString("%1").arg(alpha))
+            self._alpha_edit[-1].setText("{0}".format(alpha))
             self._alpha_edit[-1].setValidator(alpha_val)
             self._line_forms[-1].addRow("Alpha:", self._alpha_edit[-1])
-            self.connect(self._alpha_edit[-1], QtCore.SIGNAL("returnPressed()"),
-                         self.update_line_alpha)
+            self._alpha_edit[-1].returnPressed.connect(self.update_line_alpha)
 
             self._line_tabs.addTab(self._line_pages[-1], "{0}".format(label))
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011 Free Software Foundation, Inc.
+# Copyright 2011,2018 Free Software Foundation, Inc.
 # 
 # This file is part of GNU Radio
 # 
@@ -29,28 +29,28 @@ import sys
 
 try:
     from gnuradio import qtgui
-    from PyQt4 import QtGui, QtCore
+    from PyQt5 import QtWidgets, Qt
     import sip
 except ImportError:
-    print "Error: Program requires PyQt4 and gr-qtgui."
+    sys.stderr.write("Error: Program requires PyQt5 and gr-qtgui.\n")
     sys.exit(1)
 
 try:
     import scipy
 except ImportError:
-    print "Error: Program requires scipy (see: www.scipy.org)."
+    sys.stderr.write("Error: Program requires scipy (see: www.scipy.org).\n")
     sys.exit(1)
 
 try:
     from qt_digital_window import Ui_DigitalWindow
 except ImportError:
-    print "Error: could not find qt_digital_window.py:"
-    print "\t\"Please run: pyuic4 qt_digital_window.ui -o qt_digital_window.py\""
+    sys.stderr.write("Error: could not find qt_digital_window.py:\n")
+    sys.stderr.write("\t\"Please run: pyuic5 qt_digital_window.ui -o qt_digital_window.py\"\n")
     sys.exit(1)
 
-class dialog_box(QtGui.QMainWindow):
+class dialog_box(QtWidgets.QMainWindow):
     def __init__(self, snkTx, snkRx, fg, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.gui = Ui_DigitalWindow()
         self.gui.setupUi(self)
 
@@ -71,23 +71,13 @@ class dialog_box(QtGui.QMainWindow):
 
 
         # Connect up some signals
-        self.connect(self.gui.pauseButton, QtCore.SIGNAL("clicked()"),
-                     self.pauseFg)
-
-        self.connect(self.gui.sampleRateEdit, QtCore.SIGNAL("editingFinished()"),
-                     self.sampleRateEditText)
-
-        self.connect(self.gui.snrEdit, QtCore.SIGNAL("editingFinished()"),
-                     self.snrEditText)
-        self.connect(self.gui.freqEdit, QtCore.SIGNAL("editingFinished()"),
-                     self.freqEditText)
-        self.connect(self.gui.timeEdit, QtCore.SIGNAL("editingFinished()"),
-                     self.timeEditText)
-
-        self.connect(self.gui.gainMuEdit, QtCore.SIGNAL("editingFinished()"),
-                     self.gainMuEditText)
-        self.connect(self.gui.alphaEdit, QtCore.SIGNAL("editingFinished()"),
-                     self.alphaEditText)
+        self.gui.pauseButton.clicked.connect(self.pauseFg)
+        self.gui.sampleRateEdit.editingFinished.connect(self.sampleRateEditText)
+        self.gui.snrEdit.editingFinished.connect(self.snrEditText)
+        self.gui.freqEdit.editingFinished.connect(self.freqEditText)
+        self.gui.timeEdit.editingFinished.connect(self.timeEditText)
+        self.gui.gainMuEdit.editingFinished.connect(self.gainMuEditText)
+        self.gui.alphaEdit.editingFinished.connect(self.alphaEditText)
 
 
     def pauseFg(self):
@@ -102,7 +92,7 @@ class dialog_box(QtGui.QMainWindow):
     # Accessor functions for Gui to manipulate system parameters
     def set_sample_rate(self, sr):
         ssr = eng_notation.num_to_str(sr)
-        self.gui.sampleRateEdit.setText(QtCore.QString("%1").arg(ssr))
+        self.gui.sampleRateEdit.setText("{0}".format(ssr))
 
     def sampleRateEditText(self):
         try:
@@ -115,13 +105,13 @@ class dialog_box(QtGui.QMainWindow):
 
     # Accessor functions for Gui to manipulate channel model
     def set_snr(self, snr):
-        self.gui.snrEdit.setText(QtCore.QString("%1").arg(snr))
+        self.gui.snrEdit.setText("{0}".format(snr))
 
     def set_frequency(self, fo):
-        self.gui.freqEdit.setText(QtCore.QString("%1").arg(fo))
+        self.gui.freqEdit.setText("{0}".format(fo))
 
     def set_time_offset(self, to):
-        self.gui.timeEdit.setText(QtCore.QString("%1").arg(to))
+        self.gui.timeEdit.setText("{0}".format(to))
 
     def snrEditText(self):
         try:
@@ -147,10 +137,10 @@ class dialog_box(QtGui.QMainWindow):
 
     # Accessor functions for Gui to manipulate receiver parameters
     def set_gain_mu(self, gain):
-        self.gui.gainMuEdit.setText(QtCore.QString("%1").arg(gain))
+        self.gui.gainMuEdit.setText("{0}".format(gain))
 
     def set_loop_bw(self, bw):
-        self.gui.alphaEdit.setText(QtCore.QString("%1").arg(bw))
+        self.gui.alphaEdit.setText("{0}".format(bw))
 
     def alphaEditText(self):
         try:
@@ -171,7 +161,7 @@ class my_top_block(gr.top_block):
     def __init__(self):
         gr.top_block.__init__(self)
 
-        self.qapp = QtGui.QApplication(sys.argv)
+        self.qapp = QtWidgets.QApplication(sys.argv)
 
         self._sample_rate = 2000e3
 
@@ -231,10 +221,10 @@ class my_top_block(gr.top_block):
         self.connect(self.channel, self.rx_rrc, self.receiver, self.snk_rx)
         
         pyTxQt  = self.snk_tx.pyqwidget()
-        pyTx = sip.wrapinstance(pyTxQt, QtGui.QWidget)
+        pyTx = sip.wrapinstance(pyTxQt, QtWidgets.QWidget)
 
         pyRxQt  = self.snk_rx.pyqwidget()
-        pyRx = sip.wrapinstance(pyRxQt, QtGui.QWidget)
+        pyRx = sip.wrapinstance(pyRxQt, QtWidgets.QWidget)
 
         self.main_box = dialog_box(pyTx, pyRx, self);
         self.main_box.show()

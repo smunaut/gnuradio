@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2013 Free Software Foundation, Inc.
+# Copyright 2013,2018 Free Software Foundation, Inc.
 #
 # This file is part of GNU Radio
 #
@@ -24,10 +24,10 @@ import sys
 from gnuradio import filter
 
 try:
-    from PyQt4 import QtGui, QtCore
+    from PyQt5 import QtWidgets, Qt
     import sip
 except ImportError:
-    print "Error: Program requires PyQt4."
+    sys.stderr.write("Error: Program requires PyQt5.\n")
     sys.exit(1)
 
 try:
@@ -39,21 +39,19 @@ class plot_time_form(plot_form):
     def __init__(self, top_block, title='', scale=1):
         plot_form.__init__(self, top_block, title, scale)
 
-        self.right_col_layout = QtGui.QVBoxLayout()
-        self.right_col_form = QtGui.QFormLayout()
+        self.right_col_layout = QtWidgets.QVBoxLayout()
+        self.right_col_form = QtWidgets.QFormLayout()
         self.right_col_layout.addLayout(self.right_col_form)
         self.layout.addLayout(self.right_col_layout, 1,4,1,1)
 
-        self.auto_scale = QtGui.QCheckBox("Auto Scale", self)
+        self.auto_scale = QtWidgets.QCheckBox("Auto Scale", self)
         if(self.top_block._auto_scale):
             self.auto_scale.setChecked(self.top_block._auto_scale)
-        self.connect(self.auto_scale, QtCore.SIGNAL("stateChanged(int)"),
-                     self.set_auto_scale)
+        self.auto_scale.stateChanged.connect(self.set_auto_scale)
         self.right_col_layout.addWidget(self.auto_scale)
 
-        self.stem = QtGui.QCheckBox("Stem", self)
-        self.connect(self.stem, QtCore.SIGNAL("stateChanged(int)"),
-                     self.enable_stem)
+        self.stem = QtWidgets.QCheckBox("Stem", self)
+        self.stem.stateChanged.connect(self.enable_stem)
         self.right_col_layout.addWidget(self.stem)
 
         self.add_line_control(self.right_col_layout)
@@ -76,4 +74,3 @@ class plot_time_form(plot_form):
     def update_samp_rate(self):
         sr = self.samp_rate_edit.text().toDouble()[0]
         self.top_block.gui_snk.set_samp_rate(sr)
-

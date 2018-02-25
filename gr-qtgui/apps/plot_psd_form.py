@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2013 Free Software Foundation, Inc.
+# Copyright 2013,2018 Free Software Foundation, Inc.
 #
 # This file is part of GNU Radio
 #
@@ -24,10 +24,10 @@ import sys
 from gnuradio import filter
 
 try:
-    from PyQt4 import QtGui, QtCore
+    from PyQt5 import QtWidgets, Qt
     import sip
 except ImportError:
-    print "Error: Program requires PyQt4."
+    sys.stderr.write("Error: Program requires PyQt5 and gr-qtgui.\n")
     sys.exit(1)
 
 try:
@@ -39,39 +39,35 @@ class plot_psd_form(plot_form):
     def __init__(self, top_block, title=''):
         plot_form.__init__(self, top_block, title)
 
-        self.right_col_layout = QtGui.QVBoxLayout()
-        self.right_col_form = QtGui.QFormLayout()
+        self.right_col_layout = QtWidgets.QVBoxLayout()
+        self.right_col_form = QtWidgets.QFormLayout()
         self.right_col_layout.addLayout(self.right_col_form)
         self.layout.addLayout(self.right_col_layout, 1,4,1,1)
 
-        self.psd_size_val = QtGui.QIntValidator(0, 2**18, self)
-        self.psd_size_edit = QtGui.QLineEdit(self)
+        self.psd_size_val = QtWidgets.QIntValidator(0, 2**18, self)
+        self.psd_size_edit = QtWidgets.QLineEdit(self)
         self.psd_size_edit.setMinimumWidth(50)
         self.psd_size_edit.setMaximumWidth(100)
-        self.psd_size_edit.setText(QtCore.QString("%1").arg(top_block._psd_size))
+        self.psd_size_edit.setText("{0}".format(top_block._psd_size))
         self.psd_size_edit.setValidator(self.psd_size_val)
         self.right_col_form.addRow("FFT:", self.psd_size_edit)
-        self.connect(self.psd_size_edit, QtCore.SIGNAL("returnPressed()"),
-                     self.update_psd_size)
+        self.psd_size_edit.returnPressed.connect(self.update_psd_size)
 
-        self.psd_win_combo = QtGui.QComboBox(self)
+        self.psd_win_combo = QtWidgets.QComboBox(self)
         self.psd_win_combo.addItems(["None", "Hamming", "Hann", "Blackman",
                                      "Rectangular", "Kaiser", "Blackman-harris"])
         self.psd_win_combo.setCurrentIndex(self.top_block.gui_snk.fft_window()+1)
         self.right_col_form.addRow("Window:", self.psd_win_combo)
-        self.connect(self.psd_win_combo,
-                     QtCore.SIGNAL("currentIndexChanged(int)"),
-                     self.update_psd_win)
+        self.psd_win_combo.currentIndexChanged.connect(self.update_psd_win)
 
-        self.psd_avg_val = QtGui.QDoubleValidator(0, 1.0, 4, self)
-        self.psd_avg_edit = QtGui.QLineEdit(self)
+        self.psd_avg_val = QtWidgets.QDoubleValidator(0, 1.0, 4, self)
+        self.psd_avg_edit = QtWidgets.QLineEdit(self)
         self.psd_avg_edit.setMinimumWidth(50)
         self.psd_avg_edit.setMaximumWidth(100)
-        self.psd_avg_edit.setText(QtCore.QString("%1").arg(top_block._avg))
+        self.psd_avg_edit.setText("{0}".format(top_block._avg))
         self.psd_avg_edit.setValidator(self.psd_avg_val)
         self.right_col_form.addRow("Average:", self.psd_avg_edit)
-        self.connect(self.psd_avg_edit, QtCore.SIGNAL("returnPressed()"),
-                     self.update_psd_avg)
+        self.psd_avg_edit.returnPressed.connect(self.update_psd_avg)
 
         self.add_line_control(self.right_col_layout)
 
