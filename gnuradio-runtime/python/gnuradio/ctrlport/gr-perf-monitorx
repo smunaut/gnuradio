@@ -46,8 +46,8 @@ except ImportError:
        "Please check that they are installed and try again."
     sys.exit(1)
 
-from PyQt4 import QtCore,Qt
-import PyQt4.QtGui as QtGui
+from PyQt5 import QtCore,Qt
+import PyQt5.QtGui as QtGui
 import itertools
 
 from gnuradio import gr, ctrlport

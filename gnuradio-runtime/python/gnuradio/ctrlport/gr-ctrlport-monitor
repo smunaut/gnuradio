@@ -20,8 +20,8 @@
 # Boston, MA 02110-1301, USA.
 #
 
-from PyQt4 import QtCore,Qt
-import PyQt4.QtGui as QtGui
+from PyQt5 import QtCore,Qt
+import PyQt5.QtGui as QtGui
 import os, sys, time, struct
 
 from gnuradio import gr, ctrlport
