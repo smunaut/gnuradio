@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2016 Free Software Foundation, Inc.
+# Copyright 2016,2018 Free Software Foundation, Inc.
 #
 # This file is part of GNU Radio
 #
@@ -21,7 +21,7 @@
 # Boston, MA 02110-1301, USA.
 #
 
-from PyQt4 import Qt, QtCore, QtGui
+from PyQt5 import Qt, QtCore, QtGui, QtWidgets
 from gnuradio import gr
 
 def check_set_qss():
@@ -32,4 +32,3 @@ def check_set_qss():
             app.setStyleSheet(open(qssfile).read())
         except:
             print "WARNING: bad QSS file, %s"%(qssfile)
-
