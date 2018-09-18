@@ -71,7 +71,7 @@ class ExecFlowGraphThread(threading.Thread):
         return subprocess.Popen(
             args=run_command_args,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-            shell=False, universal_newlines=True
+            shell=False, universal_newlines=True, bufsize=0
         )
 
     def run(self):
